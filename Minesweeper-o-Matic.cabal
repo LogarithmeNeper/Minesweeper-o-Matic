@@ -6,12 +6,12 @@ cabal-version: 1.12
 
 name:           Minesweeper-o-Matic
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/Minesweeper-o-Matic#readme>
-homepage:       https://github.com/githubuser/Minesweeper-o-Matic#readme
-bug-reports:    https://github.com/githubuser/Minesweeper-o-Matic/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2021 Author name here
+description:    Please see the README on GitHub at <https://github.com/LogarithmeNeper/Minesweeper-o-Matic#readme>
+homepage:       https://github.com/LogarithmeNeper/Minesweeper-o-Matic#readme
+bug-reports:    https://github.com/LogarithmeNeper/Minesweeper-o-Matic/issues
+author:         Pierre Sibut-Bourde
+maintainer:     sibutbop@tcd.ie
+copyright:      2021 Pierre Sibut-Bourde
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/Minesweeper-o-Matic
+  location: https://github.com/LogarithmeNeper/Minesweeper-o-Matic
 
 library
   exposed-modules:
