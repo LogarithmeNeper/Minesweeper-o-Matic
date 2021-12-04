@@ -32,6 +32,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , threepenny-gui
   default-language: Haskell2010
 
 executable Minesweeper-o-Matic-exe
@@ -44,6 +45,7 @@ executable Minesweeper-o-Matic-exe
   build-depends:
       Minesweeper-o-Matic
     , base >=4.7 && <5
+    , threepenny-gui
   default-language: Haskell2010
 
 test-suite Minesweeper-o-Matic-test
@@ -57,4 +59,5 @@ test-suite Minesweeper-o-Matic-test
   build-depends:
       Minesweeper-o-Matic
     , base >=4.7 && <5
+    , threepenny-gui
   default-language: Haskell2010
