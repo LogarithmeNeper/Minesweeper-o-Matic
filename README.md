@@ -44,7 +44,8 @@ The project is worth 35% overall :
 To build this application, make sure ```stack``` is correctly installed on your computer. Git clone or download the sources of the project using this repository, then ```cd``` to the root of this project (where this Readme.md is), then use the following :
 
 ```{bash}
-stack build && stack exec shape-server-exe
+stack build
+stack exec Minesweeper-o-Matic-exe
 ```
 
 Then, you can either follow the link given in the Terminal from which you used ```stack```, or you can point a browser to ```http://127.0.0.1:8023/```, being the default configuration.
