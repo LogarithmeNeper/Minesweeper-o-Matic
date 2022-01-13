@@ -1,4 +1,3 @@
-import qualified Data.Functor as Mine
 -- This file presents the modelisation of the game
 
 -----------------------------------------------------------------
