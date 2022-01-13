@@ -168,5 +168,13 @@ replaceOldTileWithNewTile gameBoard oldTile newTile = setTileInGameBoard gameBoa
 -- Now we can setup the board by putting mines in it.
 setMineAtCoordinates :: GameBoard -> Coordinates -> GameBoard
 setMineAtCoordinates gameBoard coordinates = setTileInGameBoard gameBoard newMine coordinates
-    where newMine = 
-        Tile {coordinates :: Coordinates, realValue ::  RealValue, displayValue :: DisplayValue}
+    where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Invisible}
+
+-- A simple recursivity pattern does the trick here, however Haskell indicates we can use foldl to do better. Here is the initial version :
+-- setMinesInGameBoard gameBoard [] = gameBoard
+-- setMinesInGameBoard gameBoard (coordinate:coordinates) = setMinesInGameBoard (setMineAtCoordinates gameBoard coordinate) coordinates
+-- Here is the new one :
+-- setMinesInGameBoard gameBoard coordinates = foldl setMineAtCoordinates gameBoard coordinates
+-- And we could also eta-reduce the function, which gives us the following function (to me, it's quite obscure)
+setMinesInGameBoard :: GameBoard -> [Coordinates] -> GameBoard
+setMinesInGameBoard = foldl setMineAtCoordinates
