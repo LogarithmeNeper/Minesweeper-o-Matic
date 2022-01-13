@@ -28,7 +28,7 @@ sizeJ = 25
 numberOfMines :: Int
 numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 
-data State = Play | Flag | RemoveFlag
+data State = Play | Flag | Remove
 
 -----------------------------------------------------------------
 -- UI Design                                                    |
@@ -46,6 +46,13 @@ setup w = do
 
     presentationText <- UI.p # set UI.text "To play this game, just click on the grid below. Your goal is to discover all empty tiles. Avoid mines or you lose !"
     getBody w #+ [return presentationText]
+
+    playButton <- UI.button # set UI.text "play"
+    flagButton <- UI.button # set UI.text "flag"
+    removeFlagButton <- UI.button # set UI.text "remove"
+    autoButton <- UI.button # set UI.text "auto"
+
+    newGame <- UI.button # set UI.text "new game"
     
     return ()
 
