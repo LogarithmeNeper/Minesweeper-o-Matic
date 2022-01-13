@@ -71,7 +71,7 @@ isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
 
 -- Checks if the game is still in progress
 isGameInProgress :: GameBoard -> Bool
-isGameInProgress gameBoard = not isGameBoardWon gameBoard && not isGameBoardLost gameBoard
+isGameInProgress gameBoard = not (isGameBoardWon gameBoard) && not (isGameBoardLost gameBoard)
 
 -- Checks if any coordinates are between minimal value (0) and maximal value (size) vertically and horizontally.
 -- TODO: Variable size grid. 

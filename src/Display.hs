@@ -28,6 +28,8 @@ sizeJ = 25
 numberOfMines :: Int
 numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 
+data State = Play | Flag | RemoveFlag
+
 -----------------------------------------------------------------
 -- UI Design                                                    |
 -----------------------------------------------------------------
@@ -36,6 +38,14 @@ start = do startGUI defaultConfig setup
 
 setup :: Window -> UI ()
 setup w = do 
+    -- Page title setup
     return w # set UI.title "Minesweeper-o-Matic"
+
+    titleWindow <- UI.h1 # set UI.text "Minesweeper-o-Matic"
+    getBody w #+ [return titleWindow]
+
+    presentationText <- UI.p # set UI.text "To play this game, just click on the grid below. Your goal is to discover all empty tiles. Avoid mines or you lose !"
+    getBody w #+ [return presentationText]
+    
     return ()
 
