@@ -34,12 +34,12 @@ data GameStatus = InProgress | Lost | Won
     deriving (Eq, Show)
 
 -- The real board is the game board and the status of the game
-data Board = Board {
-    gameBoard :: GameBoard,
-    gameStatus :: GameStatus,
-    sizeI :: Int,
-    sizeJ :: Int
-}
+-- data Board = Board {
+--    gameBoard :: GameBoard,
+--    gameStatus :: GameStatus,
+--    sizeI :: Int,
+--    sizeJ :: Int
+--}
 
 -----------------------------------------------------------------
 -- Functions                                                    |
