@@ -118,32 +118,8 @@ countMines :: [Tile] -> Int
 countMines listOfTiles = countTrueValues (map isTileMine listOfTiles)
 
 -----------------------------------------------------------------
--- Board Generation                                             |
+-- Setters                                                      |
 -----------------------------------------------------------------
--- To generate the board at the beginning, we first generate an empty row of tiles.
-generateRowGameBoard :: Int -> Int -> [Tile]
-generateRowGameBoard _ 0 = []
-generateRowGameBoard i j = generateRowGameBoard i (j-1) ++ [currentTile]
-    where currentTile = Tile {
-        displayValue = Invisible, -- in the beginning, the tile has not been played
-        realValue = Empty, -- we will put mines afterwards
-        coordinates = (i,j-1) -- goes from 0 to size-1
-    }
-
--- To generate the board, we generate each row recursively and concatenate.
-generateGameBoard :: Int -> Int -> GameBoard
-generateGameBoard 0 _ = []
-generateGameBoard i j = generateGameBoard (i-1) j ++ [generateRowGameBoard i j]
-
--- Function used to generate a list of random coordinates
-generateRandomCoordinates :: Int -> Int -> Int -> IO [Coordinates]
-generateRandomCoordinates _ _ 0 = return []
-generateRandomCoordinates maxHeigth maxWidth coordinatesLeft = do
-    randomI <- randomRIO (0, maxHeigth-1)
-    randomJ <- randomRIO (0, maxWidth-1)
-    recursiveGeneration <- generateRandomCoordinates maxHeigth maxWidth (coordinatesLeft-1)
-    return ((randomI, randomJ):recursiveGeneration)
-
 -- We first set a tile in the corresponding row. 
 -- Recursively, if we are at the corresponding row we just insert the tile.
 -- If we are not, we decrease in a way that we can reach the corresponding row.
@@ -165,7 +141,34 @@ setTileInGameBoard gameBoard newTile coordinates =
 replaceOldTileWithNewTile :: GameBoard -> Tile -> Tile -> GameBoard
 replaceOldTileWithNewTile gameBoard oldTile newTile = setTileInGameBoard gameBoard newTile (coordinates oldTile)
 
--- Now we can setup the board by putting mines in it.
+-----------------------------------------------------------------
+-- Board Generation                                             |
+-----------------------------------------------------------------
+-- To generate the board at the beginning, we first generate an empty row of tiles.
+generateRowGameBoardEmpty :: Int -> Int -> [Tile]
+generateRowGameBoardEmpty _ 0 = []
+generateRowGameBoardEmpty i j = generateRowGameBoardEmpty i (j-1) ++ [currentTile]
+    where currentTile = Tile {
+        displayValue = Invisible, -- in the beginning, the tile has not been played
+        realValue = Empty, -- we will put mines afterwards
+        coordinates = (i,j-1) -- goes from 0 to size-1
+    }
+
+-- To generate the board, we generate each row recursively and concatenate.
+generateGameBoardEmpty :: Int -> Int -> GameBoard
+generateGameBoardEmpty 0 _ = []
+generateGameBoardEmpty i j = generateGameBoardEmpty (i-1) j ++ [generateRowGameBoardEmpty i j]
+
+-- Function used to generate a list of random coordinates
+generateRandomCoordinates :: Int -> Int -> Int -> IO [Coordinates]
+generateRandomCoordinates _ _ 0 = return []
+generateRandomCoordinates maxHeigth maxWidth coordinatesLeft = do
+    randomI <- randomRIO (0, maxHeigth-1)
+    randomJ <- randomRIO (0, maxWidth-1)
+    recursiveGeneration <- generateRandomCoordinates maxHeigth maxWidth (coordinatesLeft-1)
+    return ((randomI, randomJ):recursiveGeneration)
+
+-- Now we can setup the board by putting mines in it with the setters previously defined.
 setMineAtCoordinates :: GameBoard -> Coordinates -> GameBoard
 setMineAtCoordinates gameBoard coordinates = setTileInGameBoard gameBoard newMine coordinates
     where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Invisible}
@@ -178,3 +181,15 @@ setMineAtCoordinates gameBoard coordinates = setTileInGameBoard gameBoard newMin
 -- And we could also eta-reduce the function, which gives us the following function (to me, it's quite obscure)
 setMinesInGameBoard :: GameBoard -> [Coordinates] -> GameBoard
 setMinesInGameBoard = foldl setMineAtCoordinates
+
+-- We can properly generate the gameboard with mines in it.
+generateGameBoard :: Int -> Int -> Int -> IO GameBoard
+generateGameBoard maxHeight maxWidth howManyMines = do
+    let gameBoard = generateGameBoardEmpty maxHeight maxWidth
+    mineCoordinates <- generateRandomCoordinates  maxHeight maxWidth howManyMines
+    return (setMinesInGameBoard gameBoard mineCoordinates)
+
+-- And encapsulate it in the Board type.
+-- generateBoard :: Int -> Int -> Int -> IO Board
+-- generateBoard maxHeight maxWidth howManyMines =
+-- return Board{gameBoard=generateGameBoard maxHeight maxWidth howManyMines, gameStatus=InProgress, sizeI=maxHeight, sizeJ=howManyMines}
