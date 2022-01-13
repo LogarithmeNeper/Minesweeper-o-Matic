@@ -24,9 +24,9 @@ sizeI = 15
 sizeJ :: Int
 sizeJ = 25
 
--- Number of Mines in the Grid
+-- Number of Mines in the Grid.
 numberOfMines :: Int
-numberOfMines = floor difficulty*sizeI*sizeJ
+numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 
 -----------------------------------------------------------------
 -- UI Design                                                    |
