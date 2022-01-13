@@ -28,19 +28,6 @@ data Tile = Tile {
 -- The game board will be composed of a 2-dimensional structure of tiles.
 type GameBoard = [[Tile]]
 
--- Game status is either that the game is in progress, the game is lost (because we clicked on a mine), or the game is won (becasue no empty squared is invisible)
--- See below for implementation of checking.
-data GameStatus = InProgress | Lost | Won
-    deriving (Eq, Show)
-
--- The real board is the game board and the status of the game
--- data Board = Board {
---    gameBoard :: GameBoard,
---    gameStatus :: GameStatus,
---    sizeI :: Int,
---    sizeJ :: Int
---}
-
 -----------------------------------------------------------------
 -- Functions                                                    |
 -----------------------------------------------------------------
