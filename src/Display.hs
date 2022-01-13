@@ -31,6 +31,18 @@ numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 data State = Play | Flag | Remove
 
 -----------------------------------------------------------------
+-- GameBoard display                                            |
+-----------------------------------------------------------------
+mineString :: String
+mineString = "💣"
+
+flaggedString :: String
+flaggedString = "🚩"
+
+emptyString :: String
+emptyString = "⬛"
+
+-----------------------------------------------------------------
 -- UI Design                                                    |
 -----------------------------------------------------------------
 start :: IO ()
@@ -42,7 +54,7 @@ setup w = do
     return w # set UI.title "Minesweeper-o-Matic"
 
     -- Window title as a h1 element in HTML
-    titleWindow <- UI.h1 # set UI.text "Minesweeper-o-Matic"
+    titleWindow <- UI.h1 # set UI.text "Minesweeper-o-Matic 💣🚩"
     getBody w #+ [return titleWindow]
 
     -- Simple presentation text so that the user knows what he should do
