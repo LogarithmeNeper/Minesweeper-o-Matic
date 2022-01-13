@@ -12,7 +12,7 @@ data DisplayValue = Visible | Invisible | Flag | Unsure
     deriving (Eq, Show)
 
 -- Coordinates to locate a specific tile
-type Coordinates = (Integer, Integer)
+type Coordinates = (Int, Int)
 
 -- This leads us to the following type :
 -- A tile is made of a location, a real value, a display value.
@@ -36,6 +36,12 @@ data Board = Board {
     gameBoard :: GameBoard,
     gameStatus :: GameStatus
 }
+
+sizeI :: Integer
+sizeI = 15
+
+sizeJ :: Integer
+sizeJ = 25
 
 -----------------------------------------------------------------
 -- Functions                                                    |
@@ -80,8 +86,8 @@ isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
 
 -- Checks if any coordinates are between minimal value (0) and maximal value (size) vertically and horizontally.
 -- One better solution would have been to get a variable-size grid that 
-areCoordinatesInBound :: Coordinates -> Integer -> Integer -> Bool
-areCoordinatesInBound (i,j) sizeI sizeJ = 0 <= i && i < sizeI && 0 <= j && j < sizeJ
+areCoordinatesInBound :: Coordinates -> Bool
+areCoordinatesInBound (i,j) = 0 <= i && i < sizeI && 0 <= j && j < sizeJ
 
 -- Gives us a list of potential neighbours, which can possibly be out of range (we will filter with the next function).
 potentialNeighbours :: Coordinates -> [Coordinates]
@@ -90,8 +96,13 @@ potentialNeighbours (i,j) =
             (i-1, j-1), (i-1, j), (i-1, j+1),
             (i  , j-1), (i  , j), (i  , j+1),
             (i+1, j-1), (i+1, j), (i+1, j+1)
-            ] -- isn't this beautiful for the reader ?
+            ]
 
 -- Filters the list to get only the in-bound neighbours.
--- actualNeighbours :: [Coordinates] -> Integer -> Integer -> [Coordinates] 
+actualNeighbours :: Coordinates -> [Coordinates] 
+actualNeighbours (i,j) = filter areCoordinatesInBound (potentialNeighbours (i,j))
 
+getTileFromCoordinates :: GameBoard -> Coordinates -> Maybe Tile
+getTileFromCoordinates gameBoard (i,j)
+    | areCoordinatesInBound (i,j) = Just (gameBoard !! i !! j)
+    | otherwise = Nothing
