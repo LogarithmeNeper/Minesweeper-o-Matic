@@ -37,10 +37,10 @@ data Board = Board {
     gameStatus :: GameStatus
 }
 
-sizeI :: Integer
+sizeI :: Int
 sizeI = 15
 
-sizeJ :: Integer
+sizeJ :: Int
 sizeJ = 25
 
 -----------------------------------------------------------------
@@ -85,13 +85,13 @@ isGameBoardWon :: GameBoard -> Bool
 isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
 
 -- Checks if any coordinates are between minimal value (0) and maximal value (size) vertically and horizontally.
--- One better solution would have been to get a variable-size grid that 
+-- TODO: Variable size grid. 
 areCoordinatesInBound :: Coordinates -> Bool
 areCoordinatesInBound (i,j) = 0 <= i && i < sizeI && 0 <= j && j < sizeJ
 
 -- Gives us a list of potential neighbours, which can possibly be out of range (we will filter with the next function).
 potentialNeighbours :: Coordinates -> [Coordinates]
-potentialNeighbours (i,j) = 
+potentialNeighbours (i,j) =
             [
             (i-1, j-1), (i-1, j), (i-1, j+1),
             (i  , j-1), (i  , j), (i  , j+1),
@@ -99,10 +99,23 @@ potentialNeighbours (i,j) =
             ]
 
 -- Filters the list to get only the in-bound neighbours.
-actualNeighbours :: Coordinates -> [Coordinates] 
+actualNeighbours :: Coordinates -> [Coordinates]
 actualNeighbours (i,j) = filter areCoordinatesInBound (potentialNeighbours (i,j))
 
-getTileFromCoordinates :: GameBoard -> Coordinates -> Maybe Tile
-getTileFromCoordinates gameBoard (i,j)
-    | areCoordinatesInBound (i,j) = Just (gameBoard !! i !! j)
-    | otherwise = Nothing
+-- Gets the tile at said coordinates, if exists, in anyother case, says that nothing exists at said coordinates.
+getTileFromCoordinates :: GameBoard -> Coordinates -> Tile
+getTileFromCoordinates gameBoard (i,j) = gameBoard !! i !! j
+
+-- Function that gets a list of titles 
+getTilesFromCoordinates :: GameBoard -> [Coordinates] -> [Tile]
+getTilesFromCoordinates gameBoard = map (getTileFromCoordinates gameBoard)
+
+-- Counts number of True values in a list.
+-- fromEnum converts list of Bool to list of Int, and then we can sum over this list.
+countTrueValues :: [Bool] -> Int 
+countTrueValues list = sum (map fromEnum list)
+
+-- Function that counts mines in a list of tiles.
+countMines :: [Tile] -> Int 
+countMines listOfTiles = countTrueValues (map isTileMine listOfTiles)
+
