@@ -1,6 +1,8 @@
-
 -- This file presents the modelisation of the game
 
+-----------------------------------------------------------------
+-- Objects definitions                                          |
+-----------------------------------------------------------------
 -- Real value of the tile is what the tile is when generated.
 data RealValue = Mine | Empty 
     deriving (Eq, Show)
@@ -23,3 +25,12 @@ data Tile = Tile {
 
 -- The game board will be composed of a 2-dimensional structure of tiles.
 type GameBoard = [[Tile]]
+
+-----------------------------------------------------------------
+-- Functions                                                    |
+-----------------------------------------------------------------
+isTileMine :: Tile -> Bool 
+isTileMine Tile{realValue=Mine} = True 
+isTileMine _ = False 
+
+
