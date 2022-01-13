@@ -1,6 +1,6 @@
 -- This file presents the modelisation of the game
 module Game where
-    
+
 import System.Random
 -----------------------------------------------------------------
 -- Objects definitions                                          |
@@ -120,7 +120,6 @@ countMines listOfTiles = countTrueValues (map isTileMine listOfTiles)
 -----------------------------------------------------------------
 -- Board Generation                                             |
 -----------------------------------------------------------------
-
 -- To generate the board at the beginning, we first generate an empty row of tiles.
 generateRowGameBoard :: Int -> Int -> [Tile]
 generateRowGameBoard _ 0 = []
@@ -145,3 +144,19 @@ generateRandomCoordinates maxHeigth maxWidth coordinatesLeft = do
     recursiveGeneration <- generateRandomCoordinates maxHeigth maxWidth (coordinatesLeft-1)
     return ((randomI, randomJ):recursiveGeneration)
 
+-- We first set a tile in the corresponding row. 
+-- Recursively, if we are at the corresponding row we just insert the tile.
+-- If we are not, we decrease in a way that we can reach the corresponding row.
+-- In any case, we keep track of the whole object !
+setTileInRow :: [Tile] -> Tile -> Int -> [Tile]
+setTileInRow [] _ _ = []
+setTileInRow (tile:otherTiles) newTile 0 = newTile:otherTiles
+setTileInRow (tile:otherTiles) newTile j = tile:setTileInRow otherTiles newTile (j-1)
+
+-- Similar in the idea but working on the first coordinate.
+setTileInGameBoard :: GameBoard -> Tile -> Coordinates -> GameBoard
+setTileInGameBoard [] _ _ = []
+setTileInGameBoard gameBoard newTile coordinates =
+    case coordinates of
+        (0, j) -> setTileInRow (head gameBoard) newTile j:tail gameBoard
+        (i, j) -> head gameBoard:setTileInGameBoard (tail gameBoard) newTile (i-1, j)
