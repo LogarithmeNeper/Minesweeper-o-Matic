@@ -38,6 +38,13 @@ data Board = Board {
     gameStatus :: GameStatus
 }
 
+-- Global variables that represent the vertical/horizontal size of the grid.
+sizeI :: Integer
+sizeI = 15
+
+sizeJ :: Integer
+sizeJ = 25
+
 -----------------------------------------------------------------
 -- Functions                                                    |
 -----------------------------------------------------------------
@@ -78,3 +85,22 @@ isTileEmptyAndInvisible tile = not (isTileMine tile) && isTileInvisible tile
 -- Which was finally converted to the following.
 isGameBoardWon :: GameBoard -> Bool
 isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
+
+-- Checks if any coordinates are between minimal value (0) and maximal value (size) vertically and horizontally.
+-- One better solution would have been to get a variable-size grid that 
+areCoordinatesInBound :: Coordinates -> Bool
+areCoordinatesInBound (i,j) = 0 <= i && i < sizeI && 0 <= j && j < sizeJ
+
+-- Gives us a list of potential neighbours, which can possibly be out of range (we will filter with the next function).
+potentialNeighbours :: Coordinates -> [Coordinates]
+potentialNeighbours (i,j) = 
+            [
+            (i-1, j-1), (i-1, j), (i-1, j+1),
+            (i  , j-1), (i  , j), (i  , j+1),
+            (i+1, j-1), (i+1, j), (i+1, j+1)
+            ] -- isn't this beautiful for the reader ?
+
+-- Filters the list to get only the in-bound neighbours.
+actualNeighbours :: Coordinates -> [Coordinates] 
+actualNeighbours (i, j) = filter areCoordinatesInBound (potentialNeighbours (i,j))
+
