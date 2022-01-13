@@ -26,13 +26,13 @@ source-repository head
 library
   exposed-modules:
       Game
-      Lib
   other-modules:
       Paths_Minesweeper_o_Matic
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , random
     , threepenny-gui
   default-language: Haskell2010
 
@@ -46,6 +46,7 @@ executable Minesweeper-o-Matic-exe
   build-depends:
       Minesweeper-o-Matic
     , base >=4.7 && <5
+    , random
     , threepenny-gui
   default-language: Haskell2010
 
@@ -60,5 +61,6 @@ test-suite Minesweeper-o-Matic-test
   build-depends:
       Minesweeper-o-Matic
     , base >=4.7 && <5
+    , random
     , threepenny-gui
   default-language: Haskell2010

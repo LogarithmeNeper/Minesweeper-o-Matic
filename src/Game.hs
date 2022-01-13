@@ -1,5 +1,7 @@
 -- This file presents the modelisation of the game
-
+module Game where
+    
+import System.Random
 -----------------------------------------------------------------
 -- Objects definitions                                          |
 -----------------------------------------------------------------
@@ -34,14 +36,10 @@ data GameStatus = InProgress | Lost | Won
 -- The real board is the game board and the status of the game
 data Board = Board {
     gameBoard :: GameBoard,
-    gameStatus :: GameStatus
+    gameStatus :: GameStatus,
+    sizeI :: Int,
+    sizeJ :: Int
 }
-
-sizeI :: Int
-sizeI = 15
-
-sizeJ :: Int
-sizeJ = 25
 
 -----------------------------------------------------------------
 -- Functions                                                    |
@@ -86,21 +84,21 @@ isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
 
 -- Checks if any coordinates are between minimal value (0) and maximal value (size) vertically and horizontally.
 -- TODO: Variable size grid. 
-areCoordinatesInBound :: Coordinates -> Bool
-areCoordinatesInBound (i,j) = 0 <= i && i < sizeI && 0 <= j && j < sizeJ
+areCoordinatesInBound :: Int -> Int -> Coordinates -> Bool
+areCoordinatesInBound sizeI sizeJ (i,j) = 0 <= i && i < sizeI && 0 <= j && j < sizeJ
 
 -- Gives us a list of potential neighbours, which can possibly be out of range (we will filter with the next function).
 potentialNeighbours :: Coordinates -> [Coordinates]
 potentialNeighbours (i,j) =
             [
             (i-1, j-1), (i-1, j), (i-1, j+1),
-            (i  , j-1), (i  , j), (i  , j+1),
+            (i  , j-1),           (i  , j+1),
             (i+1, j-1), (i+1, j), (i+1, j+1)
             ]
 
 -- Filters the list to get only the in-bound neighbours.
-actualNeighbours :: Coordinates -> [Coordinates]
-actualNeighbours (i,j) = filter areCoordinatesInBound (potentialNeighbours (i,j))
+actualNeighbours :: Coordinates -> Int -> Int -> [Coordinates]
+actualNeighbours (i,j) a b = filter (areCoordinatesInBound a b) (potentialNeighbours (i,j))
 
 -- Gets the tile at said coordinates, if exists, in anyother case, says that nothing exists at said coordinates.
 getTileFromCoordinates :: GameBoard -> Coordinates -> Tile
@@ -133,8 +131,17 @@ generateRowGameBoard i j = generateRowGameBoard i (j-1) ++ [currentTile]
         coordinates = (i,j-1) -- goes from 0 to size-1
     }
 
--- To generate the board, we generate each row recursively
+-- To generate the board, we generate each row recursively and concatenate.
 generateGameBoard :: Int -> Int -> GameBoard
 generateGameBoard 0 _ = []
 generateGameBoard i j = generateGameBoard (i-1) j ++ [generateRowGameBoard i j]
+
+-- Function used to generate a list of random coordinates
+generateRandomCoordinates :: Int -> Int -> Int -> IO [Coordinates]
+generateRandomCoordinates _ _ 0 = return []
+generateRandomCoordinates maxHeigth maxWidth coordinatesLeft = do
+    randomI <- randomRIO (0, maxHeigth-1)
+    randomJ <- randomRIO (0, maxWidth-1)
+    recursiveGeneration <- generateRandomCoordinates maxHeigth maxWidth (coordinatesLeft-1)
+    return ((randomI, randomJ):recursiveGeneration)
 
