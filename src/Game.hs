@@ -112,10 +112,29 @@ getTilesFromCoordinates gameBoard = map (getTileFromCoordinates gameBoard)
 
 -- Counts number of True values in a list.
 -- fromEnum converts list of Bool to list of Int, and then we can sum over this list.
-countTrueValues :: [Bool] -> Int 
+countTrueValues :: [Bool] -> Int
 countTrueValues list = sum (map fromEnum list)
 
 -- Function that counts mines in a list of tiles.
-countMines :: [Tile] -> Int 
+countMines :: [Tile] -> Int
 countMines listOfTiles = countTrueValues (map isTileMine listOfTiles)
+
+-----------------------------------------------------------------
+-- Board Generation                                             |
+-----------------------------------------------------------------
+
+-- To generate the board at the beginning, we first generate an empty row of tiles.
+generateRowGameBoard :: Int -> Int -> [Tile]
+generateRowGameBoard _ 0 = []
+generateRowGameBoard i j = generateRowGameBoard i (j-1) ++ [currentTile]
+    where currentTile = Tile {
+        displayValue = Invisible, -- in the beginning, the tile has not been played
+        realValue = Empty, -- we will put mines afterwards
+        coordinates = (i,j-1) -- goes from 0 to size-1
+    }
+
+-- To generate the board, we generate each row recursively
+generateGameBoard :: Int -> Int -> GameBoard
+generateGameBoard 0 _ = []
+generateGameBoard i j = generateGameBoard (i-1) j ++ [generateRowGameBoard i j]
 
