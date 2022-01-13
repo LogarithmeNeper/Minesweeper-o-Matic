@@ -41,18 +41,21 @@ setup w = do
     -- Page title setup
     return w # set UI.title "Minesweeper-o-Matic"
 
+    -- Window title as a h1 element in HTML
     titleWindow <- UI.h1 # set UI.text "Minesweeper-o-Matic"
     getBody w #+ [return titleWindow]
 
+    -- Simple presentation text so that the user knows what he should do
     presentationText <- UI.p # set UI.text "To play this game, just click on the grid below. Your goal is to discover all empty tiles. Avoid mines or you lose !"
     getBody w #+ [return presentationText]
 
+    -- Buttons.
     playButton <- UI.button # set UI.text "play"
     flagButton <- UI.button # set UI.text "flag"
     removeFlagButton <- UI.button # set UI.text "remove"
     autoButton <- UI.button # set UI.text "auto"
 
     newGame <- UI.button # set UI.text "new game"
-    
+
     return ()
 
