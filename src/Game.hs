@@ -160,3 +160,13 @@ setTileInGameBoard gameBoard newTile coordinates =
     case coordinates of
         (0, j) -> setTileInRow (head gameBoard) newTile j:tail gameBoard
         (i, j) -> head gameBoard:setTileInGameBoard (tail gameBoard) newTile (i-1, j)
+
+-- Syntaxic sugar for easier implementation.
+replaceOldTileWithNewTile :: GameBoard -> Tile -> Tile -> GameBoard
+replaceOldTileWithNewTile gameBoard oldTile newTile = setTileInGameBoard gameBoard newTile (coordinates oldTile)
+
+-- Now we can setup the board by putting mines in it.
+setMineAtCoordinates :: GameBoard -> Coordinates -> GameBoard
+setMineAtCoordinates gameBoard coordinates = setTileInGameBoard gameBoard newMine coordinates
+    where newMine = 
+        Tile {coordinates :: Coordinates, realValue ::  RealValue, displayValue :: DisplayValue}
