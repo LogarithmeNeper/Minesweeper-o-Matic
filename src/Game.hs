@@ -28,19 +28,6 @@ data Tile = Tile {
 -- The game board will be composed of a 2-dimensional structure of tiles.
 type GameBoard = [[Tile]]
 
--- Game status is either that the game is in progress, the game is lost (because we clicked on a mine), or the game is won (becasue no empty squared is invisible)
--- See below for implementation of checking.
-data GameStatus = InProgress | Lost | Won
-    deriving (Eq, Show)
-
--- The real board is the game board and the status of the game
-data Board = Board {
-    gameBoard :: GameBoard,
-    gameStatus :: GameStatus,
-    sizeI :: Int,
-    sizeJ :: Int
-}
-
 -----------------------------------------------------------------
 -- Functions                                                    |
 -----------------------------------------------------------------
@@ -49,6 +36,11 @@ data Board = Board {
 isTileMine :: Tile -> Bool
 isTileMine Tile{realValue=Mine} = True
 isTileMine _ = False
+
+-- Function to check if a Tile is Flagged.
+isTileFlagged :: Tile -> Bool
+isTileFlagged Tile{displayValue=Flag} = True
+isTileFlagged _ = False 
 
 -- Function to check if a Tile is Visible.
 isTileVisible :: Tile -> Bool
@@ -81,6 +73,10 @@ isTileEmptyAndInvisible tile = not (isTileMine tile) && isTileInvisible tile
 -- Which was finally converted to the following.
 isGameBoardWon :: GameBoard -> Bool
 isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
+
+-- Checks if the game is still in progress
+isGameInProgress :: GameBoard -> Bool
+isGameInProgress gameBoard = not (isGameBoardWon gameBoard) && not (isGameBoardLost gameBoard)
 
 -- Checks if any coordinates are between minimal value (0) and maximal value (size) vertically and horizontally.
 -- TODO: Variable size grid. 
@@ -116,6 +112,15 @@ countTrueValues list = sum (map fromEnum list)
 -- Function that counts mines in a list of tiles.
 countMines :: [Tile] -> Int
 countMines listOfTiles = countTrueValues (map isTileMine listOfTiles)
+
+-- This function counts mines around a specific tile in the gameBoard.
+-- It is a composition of various functions defined before :
+-- 1. We get the coordinates of the tile... (coordinates tile)
+-- 2. We get a list of the coordinates of the neighbours of the tile (actualNeighbours)
+-- 3. We then get the tiles cooresponding to these coordinates.
+-- 4. Then we count how many mines we have around, which is the output.
+countMinesInNeighbours :: Tile -> GameBoard -> Int -> Int -> Int
+countMinesInNeighbours tile gameBoard maxI maxJ = countMines (getTilesFromCoordinates gameBoard (actualNeighbours (coordinates tile) maxI maxJ))
 
 -----------------------------------------------------------------
 -- Setters                                                      |
@@ -188,8 +193,3 @@ generateGameBoard maxHeight maxWidth howManyMines = do
     let gameBoard = generateGameBoardEmpty maxHeight maxWidth
     mineCoordinates <- generateRandomCoordinates  maxHeight maxWidth howManyMines
     return (setMinesInGameBoard gameBoard mineCoordinates)
-
--- And encapsulate it in the Board type.
--- generateBoard :: Int -> Int -> Int -> IO Board
--- generateBoard maxHeight maxWidth howManyMines =
--- return Board{gameBoard=generateGameBoard maxHeight maxWidth howManyMines, gameStatus=InProgress, sizeI=maxHeight, sizeJ=howManyMines}
