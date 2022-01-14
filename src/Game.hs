@@ -158,9 +158,9 @@ generateRowGameBoardEmpty :: Int -> Int -> [Tile]
 generateRowGameBoardEmpty _ 0 = []
 generateRowGameBoardEmpty i j = generateRowGameBoardEmpty i (j-1) ++ [currentTile]
     where currentTile = Tile {
-        displayValue = Invisible, -- in the beginning, the tile has not been played
+        displayValue = Visible, -- in the beginning, the tile has not been played -- debug --
         realValue = Empty, -- we will put mines afterwards
-        coordinates = (i,j-1) -- goes from 0 to size-1
+        coordinates = (i,j) -- goes from 0 to size-1
     }
 
 -- To generate the board, we generate each row recursively and concatenate.
@@ -180,7 +180,7 @@ generateRandomCoordinates maxHeigth maxWidth coordinatesLeft = do
 -- Now we can setup the board by putting mines in it with the setters previously defined.
 setMineAtCoordinates :: GameBoard -> Coordinates -> GameBoard
 setMineAtCoordinates gameBoard coordinates = setTileInGameBoard gameBoard newMine coordinates
-    where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Invisible}
+    where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Visible} -- debug --
 
 -- A simple recursivity pattern does the trick here, however Haskell indicates we can use foldl to do better. Here is the initial version :
 -- setMinesInGameBoard gameBoard [] = gameBoard

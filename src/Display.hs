@@ -71,25 +71,10 @@ drawCells (_, -1) _ _ _ _ = return ()
 drawCells (i, j) gameBoard sizeI sizeJ canvas = do
     let drawAt = (fromIntegral (j*multiplicativeFactorJ+translateI), fromIntegral (i*multiplicativeFactorI+translateJ))
         currentTile = getTileFromCoordinates gameBoard (i,j)
-        {--
-        cellType =
-            -- If Tile invisible, then we show the empty string
-            if isTileInvisible currentTile then invisibleString
-            -- In any othercase, we show the display value of the object
-            else
-                -- If mine discovered then show mine
-                if isTileMine currentTile then mineString
-                else
-                    -- If flagged tile then show flag
-                    if isTileFlagged currentTile then flagString
-                    else
-                        -- last case is : not a mine, not flagged, just show how many neighours are around.
-                        show (countMinesInNeighbours currentTile gameBoard sizeI sizeJ)
-        --}
         cellType
           | isTileInvisible currentTile = invisibleString
-          | isTileMine currentTile = mineString
           | isTileFlagged currentTile = flaggedString
+          | isTileMine currentTile = mineString
           | otherwise = show (countMinesInNeighbours currentTile gameBoard sizeI sizeJ)
     canvas # UI.fillText cellType drawAt
     drawCells (i, j-1) gameBoard sizeI sizeJ canvas
@@ -203,7 +188,7 @@ setup w = do
         element stateDisplay # set children [stateDisplayString]
         endOfGameString <- string ""
         element endOfGameDisplay # set children [endOfGameString]
-        drawGameBoard newBoard (sizeI-1) (sizeJ-1) playableBoard
+        drawGameBoard newBoard (sizeI-2) (sizeJ-2) playableBoard
         return ()
 
     -- Actions with canvas and drawableBoard
@@ -223,7 +208,22 @@ setup w = do
                     let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
                         updatedBoard = playTile currentGameBoard playedTile
                     liftIO (writeIORef displayedBoard updatedBoard)
-                    drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
+                    if isGameBoardLost updatedBoard then 
+                        do
+                            drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
+                            endOfGameString <- string "You lost."
+                            element endOfGameDisplay # set children [endOfGameString]
+                            return ()
+                    else 
+                        if isGameBoardWon updatedBoard then
+                            do
+                                endOfGameString <- string "You won."
+                                element endOfGameDisplay # set children [endOfGameString]
+                                return ()
+                        else 
+                            do 
+                                drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard 
+                
                 FlagTile -> do
                     let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
                         updatedBoard = flagTile currentGameBoard playedTile
