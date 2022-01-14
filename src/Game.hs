@@ -83,7 +83,6 @@ isGameInProgress :: GameBoard -> Bool
 isGameInProgress gameBoard = not (isGameBoardWon gameBoard) && not (isGameBoardLost gameBoard)
 
 -- Checks if any coordinates are between minimal value (0) and maximal value (size) vertically and horizontally.
--- TODO: Variable size grid. 
 areCoordinatesInBound :: Int -> Int -> Coordinates -> Bool
 areCoordinatesInBound sizeI sizeJ (i,j) = 0 <= i && i < sizeI && 0 <= j && j < sizeJ
 
@@ -158,17 +157,17 @@ replaceOldTileWithNewTile gameBoard oldTile newTile = setTileInGameBoard gameBoa
 
 -- To generate the board at the beginning, we first generate an empty row of tiles.
 generateRowGameBoardEmpty :: Int -> Int -> [Tile]
-generateRowGameBoardEmpty _ 0 = []
+generateRowGameBoardEmpty _ (-1) = []
 generateRowGameBoardEmpty i j = generateRowGameBoardEmpty i (j-1) ++ [currentTile]
     where currentTile = Tile {
-        displayValue = Visible, -- in the beginning, the tile has not been played -- debug --
+        displayValue = Invisible, -- in the beginning, the tile has not been played -- debug --
         realValue = Empty, -- we will put mines afterwards
         coordinates = (i,j) -- goes from 0 to size-1
     }
 
 -- To generate the board, we generate each row recursively and concatenate.
 generateGameBoardEmpty :: Int -> Int -> GameBoard
-generateGameBoardEmpty 0 _ = []
+generateGameBoardEmpty (-1) _ = []
 generateGameBoardEmpty i j = generateGameBoardEmpty (i-1) j ++ [generateRowGameBoardEmpty i j]
 
 -- Function used to generate a list of random coordinates
@@ -183,7 +182,7 @@ generateRandomCoordinates maxHeigth maxWidth coordinatesLeft = do
 -- Now we can setup the board by putting mines in it with the setters previously defined.
 setMineAtCoordinates :: GameBoard -> Coordinates -> GameBoard
 setMineAtCoordinates gameBoard coordinates = setTileInGameBoard gameBoard newMine coordinates
-    where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Visible} -- debug --
+    where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Invisible} -- debug --
 
 -- A simple recursivity pattern does the trick here, however Haskell indicates we can use foldl to do better. Here is the initial version :
 -- setMinesInGameBoard gameBoard [] = gameBoard
