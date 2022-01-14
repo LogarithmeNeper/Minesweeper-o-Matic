@@ -10,7 +10,7 @@ data RealValue = Mine | Empty
     deriving (Eq, Show)
 
 -- Display value of the tile is what the player sees on the boad.
-data DisplayValue = Visible | Invisible | Flag | Unsure
+data DisplayValue = Visible | Invisible | Flag
     deriving (Eq, Show)
 
 -- Coordinates to locate a specific tile
@@ -73,6 +73,10 @@ isTileEmptyAndInvisible tile = not (isTileMine tile) && isTileInvisible tile
 -- Which was finally converted to the following.
 isGameBoardWon :: GameBoard -> Bool
 isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
+
+-- Checks if the game has ended.
+hasGameBoardEnded :: GameBoard -> Bool 
+hasGameBoardEnded gameBoard = isGameBoardLost gameBoard || isGameBoardWon gameBoard
 
 -- Checks if the game is still in progress
 isGameInProgress :: GameBoard -> Bool
@@ -193,3 +197,15 @@ generateGameBoard maxHeight maxWidth howManyMines = do
     let gameBoard = generateGameBoardEmpty maxHeight maxWidth
     mineCoordinates <- generateRandomCoordinates  maxHeight maxWidth howManyMines
     return (setMinesInGameBoard gameBoard mineCoordinates)
+
+-----------------------------------------------------------------
+-- Plays                                                        |
+-----------------------------------------------------------------
+playTile :: GameBoard -> Tile -> GameBoard
+playTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Visible}
+
+flagTile :: GameBoard -> Tile -> GameBoard
+flagTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Flag}
+
+removeFlagTile :: GameBoard -> Tile -> GameBoard
+removeFlagTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Invisible}

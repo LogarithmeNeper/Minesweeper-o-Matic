@@ -7,7 +7,7 @@ import Game
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 
-import Data.IORef (newIORef, writeIORef)
+import Data.IORef (newIORef, writeIORef, readIORef)
 
 -----------------------------------------------------------------
 -- Global Variables                                             |
@@ -16,7 +16,7 @@ import Data.IORef (newIORef, writeIORef)
 -- Game Difficulty
 -- 0 <= difficulty <= 1
 difficulty :: Double
-difficulty = 0.2
+difficulty = 0.13
 
 -- Size of GameBoard (vertically)
 sizeI :: Int
@@ -43,13 +43,19 @@ flaggedString :: String
 flaggedString = "🚩"
 
 invisibleString :: String
-invisibleString = "X"
+invisibleString = "⬛"
 
 multiplicativeFactorI :: Int
 multiplicativeFactorI = 25
 
 multiplicativeFactorJ :: Int
 multiplicativeFactorJ = 25
+
+translateI :: Int
+translateI = 12
+
+translateJ :: Int
+translateJ = 12
 
 canvasSizeI :: Int
 canvasSizeI = multiplicativeFactorI * sizeI
@@ -61,9 +67,9 @@ canvasBackground :: String
 canvasBackground = "#c2c2c2"
 
 drawCells :: Coordinates -> GameBoard -> Int -> Int -> Element -> UI ()
-drawCells (_, 0) _ _ _ _ = return ()
+drawCells (_, -1) _ _ _ _ = return ()
 drawCells (i, j) gameBoard sizeI sizeJ canvas = do
-    let drawAt = (fromIntegral (j*multiplicativeFactorJ), fromIntegral (i*multiplicativeFactorI))
+    let drawAt = (fromIntegral (j*multiplicativeFactorJ+translateI), fromIntegral (i*multiplicativeFactorI+translateJ))
         currentTile = getTileFromCoordinates gameBoard (i,j)
         {--
         cellType =
@@ -89,7 +95,7 @@ drawCells (i, j) gameBoard sizeI sizeJ canvas = do
     drawCells (i, j-1) gameBoard sizeI sizeJ canvas
 
 drawRows :: Int -> GameBoard -> Int -> Int -> Element -> UI ()
-drawRows 0 _ _ _ _ = return ()
+drawRows (-1) _ _ _ _ = return ()
 drawRows i gameBoard sizeI sizeJ canvas = do
     drawCells (i, sizeJ) gameBoard sizeI sizeJ canvas
     drawRows (i-1) gameBoard sizeI sizeJ canvas
@@ -99,6 +105,11 @@ drawGameBoard gameBoard sizeI sizeJ canvas = do
     canvas # UI.clearCanvas
     drawRows sizeI gameBoard sizeI sizeJ canvas
 
+convertCanvasCoordinatesToTile :: (Double, Double) -> GameBoard -> Tile
+convertCanvasCoordinatesToTile (x, y) gameBoard = getTileFromCoordinates gameBoard (i, j)
+    where
+        i = floor $ (y-fromIntegral translateJ)/fromIntegral multiplicativeFactorJ
+        j = floor $ (x-fromIntegral translateI)/fromIntegral multiplicativeFactorI
 
 -----------------------------------------------------------------
 -- UI Design                                                    |
@@ -137,6 +148,9 @@ setup w = do
 
     generatedBoard <- liftIO (generateGameBoard sizeI sizeJ numberOfMines)
     displayedBoard <- liftIO (newIORef generatedBoard)
+
+    -- Actions objects
+    mousePosition <- liftIO (newIORef (0,0))
 
     -- Playable board
     playableBoard <- UI.canvas
@@ -189,7 +203,37 @@ setup w = do
         element stateDisplay # set children [stateDisplayString]
         endOfGameString <- string ""
         element endOfGameDisplay # set children [endOfGameString]
-        drawGameBoard newBoard (sizeI-1) (sizeJ-1) playableBoard    
+        drawGameBoard newBoard (sizeI-1) (sizeJ-1) playableBoard
+        return ()
+
+    -- Actions with canvas and drawableBoard
+    -- Idea taken from : https://stackoverflow.com/questions/59635767/threenpenny-gui-capturing-mouse-coordinates-on-click-and-using-them-to-constru
+    on UI.mousemove playableBoard $ \(x, y) -> do
+        liftIO (writeIORef mousePosition (x,y))
+
+    on UI.mousedown playableBoard $ \_ -> do
+        -- Get state information
+        currentMousePosition <- liftIO (readIORef mousePosition)
+        currentState <- liftIO (readIORef state)
+        currentGameBoard <- liftIO (readIORef displayedBoard)
+        if hasGameBoardEnded currentGameBoard then return ()
+        else do
+            case currentState of
+                PlayTile -> do
+                    let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
+                        updatedBoard = playTile currentGameBoard playedTile
+                    liftIO (writeIORef displayedBoard updatedBoard)
+                    drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
+                FlagTile -> do
+                    let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
+                        updatedBoard = flagTile currentGameBoard playedTile
+                    liftIO (writeIORef displayedBoard updatedBoard)
+                    drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
+                RemoveFlagTile -> do
+                    let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
+                        updatedBoard = removeFlagTile currentGameBoard playedTile
+                    liftIO (writeIORef displayedBoard updatedBoard)
+                    drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
         return ()
 
     return ()
