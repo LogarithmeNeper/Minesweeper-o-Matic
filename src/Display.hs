@@ -69,5 +69,12 @@ setup w = do
 
     newGame <- UI.button # set UI.text "new game"
 
+    -- Actions with buttons
+    on UI.click playButton return
+    on UI.click flagButton return
+    on UI.click removeFlagButton return
+    on UI.click autoButton return
+    on UI.click newGame return
+
     return ()
 
