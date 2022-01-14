@@ -88,6 +88,12 @@ setup w = do
     newGameButton <- UI.button # set UI.text "new game"
     getBody w #+ [return playButton, return flagButton, return removeFlagButton, return autoButton, return newGameButton]
     
+    -- End of game user display
+    endOfGameString <- string "Play"
+    endOfGameDisplay <- UI.div
+    element endOfGameDisplay # set children [endOfGameString]
+    getBody w #+ [return endOfGameDisplay]
+
     -- Actions with buttons
     on UI.click playButton $ \_ -> do 
         liftIO (writeIORef state PlayTile)
@@ -112,6 +118,8 @@ setup w = do
         liftIO (writeIORef state PlayTile)
         stateDisplayString <- string "play"
         element stateDisplay # set children [stateDisplayString]
+        endOfGameString <- string ""
+        element endOfGameDisplay # set children [endOfGameString]
         return ()
 
     return ()
