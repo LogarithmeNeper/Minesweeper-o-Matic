@@ -29,6 +29,7 @@ numberOfMines :: Int
 numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 
 data State = Play | Flag | Remove
+data GameStatus = InProgress | Won | Lost
 
 -----------------------------------------------------------------
 -- GameBoard display                                            |
@@ -62,11 +63,15 @@ setup w = do
     getBody w #+ [return presentationText]
 
     -- State helper for user
-    stateDisplay <- UI.p # set UI.text "Play"
+    stateDisplayString <- string "Play"
+    stateDisplay <- UI.div
+    element stateDisplay # set children [stateDisplayString]
     getBody w #+ [return stateDisplay]
 
     -- Game state helper for user
-    gameStateDisplay <- UI.p # set UI.text "In Progress"
+    gameStateDisplayString <- string "In Progress"
+    gameStateDisplay <- UI.div
+    element gameStateDisplay # set children [gameStateDisplayString]
     getBody w #+ [return gameStateDisplay]
 
     -- Buttons.
@@ -79,11 +84,26 @@ setup w = do
     getBody w #+ [return playButton, return flagButton, return removeFlagButton, return autoButton, return newGameButton]
     
     -- Actions with buttons
-    on UI.click playButton return
-    on UI.click flagButton return
-    on UI.click removeFlagButton return
-    on UI.click autoButton return
-    on UI.click newGameButton return
+    on UI.click playButton $ \_ -> do 
+        stateDisplayString <- string "play"
+        element stateDisplay # set children [stateDisplayString]
+        return ()
+    on UI.click flagButton $ \_ -> do 
+        stateDisplayString <- string "flag"
+        element stateDisplay # set children [stateDisplayString]
+        return ()
+    on UI.click removeFlagButton $ \_ -> do 
+        stateDisplayString <- string "remove"
+        element stateDisplay # set children [stateDisplayString]
+        return ()
+    on UI.click autoButton $ \_ -> do 
+        stateDisplayString <- string "play"
+        element stateDisplay # set children [stateDisplayString]
+        return ()
+    on UI.click newGameButton $ \_ -> do 
+        stateDisplayString <- string "play"
+        element stateDisplay # set children [stateDisplayString]
+        return ()
 
     return ()
 
