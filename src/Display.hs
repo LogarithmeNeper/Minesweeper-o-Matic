@@ -16,15 +16,15 @@ import Data.IORef (newIORef, writeIORef, readIORef)
 -- Game Difficulty
 -- 0 <= difficulty <= 1
 difficulty :: Double
-difficulty = 0.13
+difficulty = 0.2
 
 -- Size of GameBoard (vertically)
 sizeI :: Int
-sizeI = 5
+sizeI = 15
 
 -- Size of GameBoard (horizontally)
 sizeJ :: Int
-sizeJ = 5
+sizeJ = 25
 
 -- Number of Mines in the Grid.
 numberOfMines :: Int
@@ -96,6 +96,7 @@ drawRows i gameBoard sizeI sizeJ canvas = do
 drawGameBoard :: GameBoard -> Int -> Int -> Element -> UI ()
 drawGameBoard gameBoard sizeI sizeJ canvas = do
     canvas # UI.clearCanvas
+    canvas # set' UI.textFont "72px"
     drawRows sizeI gameBoard sizeI sizeJ canvas
 
 -- Function used to convert the mouse position to the actual coordinates, and then associate it with the grid.
