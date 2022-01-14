@@ -64,7 +64,11 @@ setup w = do
     -- State helper for user
     stateDisplay <- UI.p # set UI.text "Play"
     getBody w #+ [return stateDisplay]
-    
+
+    -- Game state helper for user
+    gameStateDisplay <- UI.p # set UI.text "In Progress"
+    getBody w #+ [return gameStateDisplay]
+
     -- Buttons.
     playButton <- UI.button # set UI.text "play"
     flagButton <- UI.button # set UI.text "flag"
@@ -81,6 +85,5 @@ setup w = do
     on UI.click autoButton return
     on UI.click newGameButton return
 
-    -- 
     return ()
 
