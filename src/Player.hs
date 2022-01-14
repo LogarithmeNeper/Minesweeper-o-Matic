@@ -28,3 +28,10 @@ patternFlagBoard :: GameBoard -> Int -> Int -> [Tile]
 patternFlagBoard [] _ _ = []
 patternFlagBoard (hd:tl) maxI maxJ = patternFlagRow (hd:tl) maxI maxJ hd ++ patternFlagBoard tl maxI maxJ
 
+-- Gets one move to do
+getMoveFlag :: GameBoard -> Int -> Int -> Maybe Tile
+getMoveFlag gameBoard maxI maxJ = case patternFlagBoard gameBoard maxI maxJ of
+    [] -> Nothing
+    _ -> Just (head $ patternFlagBoard gameBoard maxI maxJ)
+
+-- What is left is to link that with the actual button.
