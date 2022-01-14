@@ -1,7 +1,6 @@
 module Main where
 
-import Game
-import Display
+import Display ( start )
 
 main :: IO ()
 main = do start
