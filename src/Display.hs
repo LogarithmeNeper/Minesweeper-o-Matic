@@ -78,6 +78,7 @@ setup w = do
 
     -- Board objects
     state <- liftIO (newIORef PlayTile)
+    gameStatus <- liftIO (newIORef InProgress)
 
     -- Buttons.
     playButton <- UI.button # set UI.text "play"
@@ -116,6 +117,7 @@ setup w = do
     on UI.click newGameButton $ \_ -> do 
         -- Generate new board and display it.
         liftIO (writeIORef state PlayTile)
+        liftIO (writeIORef gameStatus InProgress)
         stateDisplayString <- string "play"
         element stateDisplay # set children [stateDisplayString]
         endOfGameString <- string ""
