@@ -207,7 +207,7 @@ playTile :: GameBoard -> Tile -> GameBoard
 playTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Visible}
 
 flagTile :: GameBoard -> Tile -> GameBoard
-flagTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Flag}
+flagTile gameBoard tile = if isTileInvisible tile then replaceOldTileWithNewTile gameBoard tile tile{displayValue=Flag} else gameBoard
 
 removeFlagTile :: GameBoard -> Tile -> GameBoard
-removeFlagTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Invisible}
+removeFlagTile gameBoard tile = if isTileFlagged tile then replaceOldTileWithNewTile gameBoard tile tile{displayValue=Invisible} else gameBoard
