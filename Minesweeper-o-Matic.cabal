@@ -27,6 +27,7 @@ library
   exposed-modules:
       Display
       Game
+      Player
   other-modules:
       Paths_Minesweeper_o_Matic
   hs-source-dirs:
