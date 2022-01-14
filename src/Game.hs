@@ -179,8 +179,3 @@ generateGameBoard maxHeight maxWidth howManyMines = do
     let gameBoard = generateGameBoardEmpty maxHeight maxWidth
     mineCoordinates <- generateRandomCoordinates  maxHeight maxWidth howManyMines
     return (setMinesInGameBoard gameBoard mineCoordinates)
-
--- And encapsulate it in the Board type.
--- generateBoard :: Int -> Int -> Int -> IO Board
--- generateBoard maxHeight maxWidth howManyMines =
--- return Board{gameBoard=generateGameBoard maxHeight maxWidth howManyMines, gameStatus=InProgress, sizeI=maxHeight, sizeJ=howManyMines}

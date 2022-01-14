@@ -7,6 +7,8 @@ import Game
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 
+import Data.IORef (newIORef, writeIORef)
+
 -----------------------------------------------------------------
 -- Global Variables                                             |
 -----------------------------------------------------------------
@@ -28,7 +30,7 @@ sizeJ = 25
 numberOfMines :: Int
 numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 
-data State = Play | Flag | Remove
+data State = PlayTile | FlagTile | RemoveFlagTile
 data GameStatus = InProgress | Won | Lost
 
 -----------------------------------------------------------------
@@ -74,6 +76,9 @@ setup w = do
     element gameStateDisplay # set children [gameStateDisplayString]
     getBody w #+ [return gameStateDisplay]
 
+    -- Board objects
+    state <- liftIO (newIORef PlayTile)
+
     -- Buttons.
     playButton <- UI.button # set UI.text "play"
     flagButton <- UI.button # set UI.text "flag"
@@ -85,22 +90,26 @@ setup w = do
     
     -- Actions with buttons
     on UI.click playButton $ \_ -> do 
+        liftIO (writeIORef state PlayTile)
         stateDisplayString <- string "play"
         element stateDisplay # set children [stateDisplayString]
         return ()
     on UI.click flagButton $ \_ -> do 
+        liftIO (writeIORef state FlagTile)
         stateDisplayString <- string "flag"
         element stateDisplay # set children [stateDisplayString]
         return ()
     on UI.click removeFlagButton $ \_ -> do 
+        liftIO (writeIORef state RemoveFlagTile)
         stateDisplayString <- string "remove"
         element stateDisplay # set children [stateDisplayString]
         return ()
     on UI.click autoButton $ \_ -> do 
-        stateDisplayString <- string "play"
-        element stateDisplay # set children [stateDisplayString]
+        -- meh time
         return ()
     on UI.click newGameButton $ \_ -> do 
+        -- Generate new board and display it.
+        liftIO (writeIORef state PlayTile)
         stateDisplayString <- string "play"
         element stateDisplay # set children [stateDisplayString]
         return ()
