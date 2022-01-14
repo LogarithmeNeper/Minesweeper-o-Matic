@@ -37,6 +37,11 @@ isTileMine :: Tile -> Bool
 isTileMine Tile{realValue=Mine} = True
 isTileMine _ = False
 
+-- Function to check if a Tile is Flagged.
+isTileFlagged :: Tile -> Bool
+isTileFlagged Tile{displayValue=Flag} = True
+isTileFlagged _ = False 
+
 -- Function to check if a Tile is Visible.
 isTileVisible :: Tile -> Bool
 isTileVisible Tile{displayValue=Visible} = True
@@ -107,6 +112,15 @@ countTrueValues list = sum (map fromEnum list)
 -- Function that counts mines in a list of tiles.
 countMines :: [Tile] -> Int
 countMines listOfTiles = countTrueValues (map isTileMine listOfTiles)
+
+-- This function counts mines around a specific tile in the gameBoard.
+-- It is a composition of various functions defined before :
+-- 1. We get the coordinates of the tile... (coordinates tile)
+-- 2. We get a list of the coordinates of the neighbours of the tile (actualNeighbours)
+-- 3. We then get the tiles cooresponding to these coordinates.
+-- 4. Then we count how many mines we have around, which is the output.
+countMinesInNeighbours :: Tile -> GameBoard -> Int -> Int -> Int
+countMinesInNeighbours tile gameBoard maxI maxJ = countMines (getTilesFromCoordinates gameBoard (actualNeighbours (coordinates tile) maxI maxJ))
 
 -----------------------------------------------------------------
 -- Setters                                                      |

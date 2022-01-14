@@ -42,14 +42,14 @@ mineString = "💣"
 flaggedString :: String
 flaggedString = "🚩"
 
-emptyString :: String
-emptyString = "⬛"
+invisibleString :: String
+invisibleString = "X"
 
-multiplicativeFactorI :: Int 
-multiplicativeFactorI = 30
+multiplicativeFactorI :: Int
+multiplicativeFactorI = 25
 
 multiplicativeFactorJ :: Int
-multiplicativeFactorJ = 30
+multiplicativeFactorJ = 25
 
 canvasSizeI :: Int
 canvasSizeI = multiplicativeFactorI * sizeI
@@ -57,8 +57,48 @@ canvasSizeI = multiplicativeFactorI * sizeI
 canvasSizeJ :: Int
 canvasSizeJ = multiplicativeFactorJ * sizeJ
 
-canvasBackground :: String 
+canvasBackground :: String
 canvasBackground = "#c2c2c2"
+
+drawCells :: Coordinates -> GameBoard -> Int -> Int -> Element -> UI ()
+drawCells (_, 0) _ _ _ _ = return ()
+drawCells (i, j) gameBoard sizeI sizeJ canvas = do
+    let drawAt = (fromIntegral (j*multiplicativeFactorJ), fromIntegral (i*multiplicativeFactorI))
+        currentTile = getTileFromCoordinates gameBoard (i,j)
+        {--
+        cellType =
+            -- If Tile invisible, then we show the empty string
+            if isTileInvisible currentTile then invisibleString
+            -- In any othercase, we show the display value of the object
+            else
+                -- If mine discovered then show mine
+                if isTileMine currentTile then mineString
+                else
+                    -- If flagged tile then show flag
+                    if isTileFlagged currentTile then flagString
+                    else
+                        -- last case is : not a mine, not flagged, just show how many neighours are around.
+                        show (countMinesInNeighbours currentTile gameBoard sizeI sizeJ)
+        --}
+        cellType
+          | isTileInvisible currentTile = invisibleString
+          | isTileMine currentTile = mineString
+          | isTileFlagged currentTile = flaggedString
+          | otherwise = show (countMinesInNeighbours currentTile gameBoard sizeI sizeJ)
+    canvas # UI.fillText cellType drawAt
+    drawCells (i, j-1) gameBoard sizeI sizeJ canvas
+
+drawRows :: Int -> GameBoard -> Int -> Int -> Element -> UI ()
+drawRows 0 _ _ _ _ = return ()
+drawRows i gameBoard sizeI sizeJ canvas = do
+    drawCells (i, sizeJ) gameBoard sizeI sizeJ canvas
+    drawRows (i-1) gameBoard sizeI sizeJ canvas
+
+drawGameBoard :: GameBoard -> Int -> Int -> Element -> UI ()
+drawGameBoard gameBoard sizeI sizeJ canvas = do
+    canvas # UI.clearCanvas
+    drawRows sizeI gameBoard sizeI sizeJ canvas
+
 
 -----------------------------------------------------------------
 -- UI Design                                                    |
@@ -67,7 +107,7 @@ start :: IO ()
 start = do startGUI defaultConfig setup
 
 setup :: Window -> UI ()
-setup w = do 
+setup w = do
     -- Page title setup
     return w # set UI.title "Minesweeper-o-Matic"
 
@@ -104,6 +144,7 @@ setup w = do
         # set UI.width canvasSizeJ
         # set UI.style [("background", canvasBackground)]
     getBody w #+ [return playableBoard]
+
     -- Buttons.
     playButton <- UI.button # set UI.text "play"
     flagButton <- UI.button # set UI.text "flag"
@@ -112,7 +153,7 @@ setup w = do
 
     newGameButton <- UI.button # set UI.text "new game"
     getBody w #+ [return playButton, return flagButton, return removeFlagButton, return autoButton, return newGameButton]
-    
+
     -- End of game user display
     endOfGameString <- string ""
     endOfGameDisplay <- UI.div
@@ -120,25 +161,25 @@ setup w = do
     getBody w #+ [return endOfGameDisplay]
 
     -- Actions with buttons
-    on UI.click playButton $ \_ -> do 
+    on UI.click playButton $ \_ -> do
         liftIO (writeIORef state PlayTile)
         stateDisplayString <- string "play"
         element stateDisplay # set children [stateDisplayString]
         return ()
-    on UI.click flagButton $ \_ -> do 
+    on UI.click flagButton $ \_ -> do
         liftIO (writeIORef state FlagTile)
         stateDisplayString <- string "flag"
         element stateDisplay # set children [stateDisplayString]
         return ()
-    on UI.click removeFlagButton $ \_ -> do 
+    on UI.click removeFlagButton $ \_ -> do
         liftIO (writeIORef state RemoveFlagTile)
         stateDisplayString <- string "remove"
         element stateDisplay # set children [stateDisplayString]
         return ()
-    on UI.click autoButton $ \_ -> do 
+    on UI.click autoButton $ \_ -> do
         -- meh time
         return ()
-    on UI.click newGameButton $ \_ -> do 
+    on UI.click newGameButton $ \_ -> do
         -- Generate new board and display it.
         liftIO (writeIORef state PlayTile)
         liftIO (writeIORef gameStatus InProgress)
@@ -148,6 +189,7 @@ setup w = do
         element stateDisplay # set children [stateDisplayString]
         endOfGameString <- string ""
         element endOfGameDisplay # set children [endOfGameString]
+        drawGameBoard newBoard (sizeI-1) (sizeJ-1) playableBoard    
         return ()
 
     return ()
