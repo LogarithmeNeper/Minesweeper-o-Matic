@@ -61,20 +61,26 @@ setup w = do
     presentationText <- UI.p # set UI.text "To play this game, just click on the grid below. Your goal is to discover all empty tiles. Avoid mines or you lose !"
     getBody w #+ [return presentationText]
 
+    -- State helper for user
+    stateDisplay <- UI.p # set UI.text "Play"
+    getBody w #+ [return stateDisplay]
+    
     -- Buttons.
     playButton <- UI.button # set UI.text "play"
     flagButton <- UI.button # set UI.text "flag"
     removeFlagButton <- UI.button # set UI.text "remove"
     autoButton <- UI.button # set UI.text "auto"
 
-    newGame <- UI.button # set UI.text "new game"
-
+    newGameButton <- UI.button # set UI.text "new game"
+    getBody w #+ [return playButton, return flagButton, return removeFlagButton, return autoButton, return newGameButton]
+    
     -- Actions with buttons
     on UI.click playButton return
     on UI.click flagButton return
     on UI.click removeFlagButton return
     on UI.click autoButton return
-    on UI.click newGame return
+    on UI.click newGameButton return
 
+    -- 
     return ()
 
