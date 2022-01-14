@@ -7,7 +7,7 @@ import Game
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 
-import Data.IORef (newIORef, writeIORef)
+import Data.IORef (newIORef, writeIORef, readIORef)
 
 -----------------------------------------------------------------
 -- Global Variables                                             |
@@ -16,7 +16,7 @@ import Data.IORef (newIORef, writeIORef)
 -- Game Difficulty
 -- 0 <= difficulty <= 1
 difficulty :: Double
-difficulty = 0.2
+difficulty = 0.13
 
 -- Size of GameBoard (vertically)
 sizeI :: Int
@@ -30,6 +30,7 @@ sizeJ = 25
 numberOfMines :: Int
 numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 
+-- Game state and game status.
 data State = PlayTile | FlagTile | RemoveFlagTile
 data GameStatus = InProgress | Won | Lost
 
@@ -43,62 +44,68 @@ flaggedString :: String
 flaggedString = "🚩"
 
 invisibleString :: String
-invisibleString = "X"
+invisibleString = "⬛"
 
+-- Homothety for better visualisation.
 multiplicativeFactorI :: Int
 multiplicativeFactorI = 25
 
 multiplicativeFactorJ :: Int
 multiplicativeFactorJ = 25
 
+-- Translation for better visualisation.
+translateI :: Int
+translateI = 12
+
+translateJ :: Int
+translateJ = 12
+
+-- Real-life size 
 canvasSizeI :: Int
 canvasSizeI = multiplicativeFactorI * sizeI
+
 
 canvasSizeJ :: Int
 canvasSizeJ = multiplicativeFactorJ * sizeJ
 
+-- Grey background.
 canvasBackground :: String
 canvasBackground = "#c2c2c2"
 
+-- Drawing each cell by drawing at a certain position the current type with priority (invisible -> flagged -> mine -> visible)
 drawCells :: Coordinates -> GameBoard -> Int -> Int -> Element -> UI ()
-drawCells (_, 0) _ _ _ _ = return ()
+drawCells (_, -1) _ _ _ _ = return ()
 drawCells (i, j) gameBoard sizeI sizeJ canvas = do
-    let drawAt = (fromIntegral (j*multiplicativeFactorJ), fromIntegral (i*multiplicativeFactorI))
+    let drawAt = (fromIntegral (j*multiplicativeFactorJ+translateI), fromIntegral (i*multiplicativeFactorI+translateJ))
         currentTile = getTileFromCoordinates gameBoard (i,j)
-        {--
-        cellType =
-            -- If Tile invisible, then we show the empty string
-            if isTileInvisible currentTile then invisibleString
-            -- In any othercase, we show the display value of the object
-            else
-                -- If mine discovered then show mine
-                if isTileMine currentTile then mineString
-                else
-                    -- If flagged tile then show flag
-                    if isTileFlagged currentTile then flagString
-                    else
-                        -- last case is : not a mine, not flagged, just show how many neighours are around.
-                        show (countMinesInNeighbours currentTile gameBoard sizeI sizeJ)
-        --}
         cellType
           | isTileInvisible currentTile = invisibleString
-          | isTileMine currentTile = mineString
           | isTileFlagged currentTile = flaggedString
+          | isTileMine currentTile = mineString
           | otherwise = show (countMinesInNeighbours currentTile gameBoard sizeI sizeJ)
     canvas # UI.fillText cellType drawAt
     drawCells (i, j-1) gameBoard sizeI sizeJ canvas
 
+-- Drawing a row by drawing each cell.
 drawRows :: Int -> GameBoard -> Int -> Int -> Element -> UI ()
-drawRows 0 _ _ _ _ = return ()
+drawRows (-1) _ _ _ _ = return ()
 drawRows i gameBoard sizeI sizeJ canvas = do
     drawCells (i, sizeJ) gameBoard sizeI sizeJ canvas
     drawRows (i-1) gameBoard sizeI sizeJ canvas
 
+-- Drawing game board by drawing each row.
 drawGameBoard :: GameBoard -> Int -> Int -> Element -> UI ()
 drawGameBoard gameBoard sizeI sizeJ canvas = do
     canvas # UI.clearCanvas
     drawRows sizeI gameBoard sizeI sizeJ canvas
 
+-- Function used to convert the mouse position to the actual coordinates, and then associate it with the grid.
+-- TODO
+convertCanvasCoordinatesToTile :: (Double, Double) -> GameBoard -> Tile
+convertCanvasCoordinatesToTile (x, y) gameBoard = getTileFromCoordinates gameBoard (i, j)
+    where
+        i = floor $ (y-fromIntegral translateJ)/fromIntegral multiplicativeFactorJ
+        j = floor $ (x-fromIntegral translateI)/fromIntegral multiplicativeFactorI
 
 -----------------------------------------------------------------
 -- UI Design                                                    |
@@ -137,6 +144,9 @@ setup w = do
 
     generatedBoard <- liftIO (generateGameBoard sizeI sizeJ numberOfMines)
     displayedBoard <- liftIO (newIORef generatedBoard)
+
+    -- Actions objects
+    mousePosition <- liftIO (newIORef (0,0))
 
     -- Playable board
     playableBoard <- UI.canvas
@@ -189,7 +199,51 @@ setup w = do
         element stateDisplay # set children [stateDisplayString]
         endOfGameString <- string ""
         element endOfGameDisplay # set children [endOfGameString]
-        drawGameBoard newBoard (sizeI-1) (sizeJ-1) playableBoard    
+        drawGameBoard newBoard (sizeI-2) (sizeJ-2) playableBoard
+        return ()
+
+    -- Actions with canvas and drawableBoard
+    -- Idea taken from : https://stackoverflow.com/questions/59635767/threenpenny-gui-capturing-mouse-coordinates-on-click-and-using-them-to-constru
+    on UI.mousemove playableBoard $ \(x, y) -> do
+        liftIO (writeIORef mousePosition (x,y))
+
+    on UI.mousedown playableBoard $ \_ -> do
+        -- Get state information
+        currentMousePosition <- liftIO (readIORef mousePosition)
+        currentState <- liftIO (readIORef state)
+        currentGameBoard <- liftIO (readIORef displayedBoard)
+        if hasGameBoardEnded currentGameBoard then return ()
+        else do
+            case currentState of
+                PlayTile -> do
+                    let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
+                        updatedBoard = playTile currentGameBoard playedTile
+                    liftIO (writeIORef displayedBoard updatedBoard)
+                    if isGameBoardLost updatedBoard then 
+                        do
+                            drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
+                            endOfGameString <- string "You lost."
+                            element endOfGameDisplay # set children [endOfGameString]
+                            return ()
+                    else 
+                        if isGameBoardWon updatedBoard then
+                            do
+                                endOfGameString <- string "You won."
+                                element endOfGameDisplay # set children [endOfGameString]
+                                return ()
+                        else 
+                            do 
+                                drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard 
+                FlagTile -> do
+                    let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
+                        updatedBoard = flagTile currentGameBoard playedTile
+                    liftIO (writeIORef displayedBoard updatedBoard)
+                    drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
+                RemoveFlagTile -> do
+                    let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
+                        updatedBoard = removeFlagTile currentGameBoard playedTile
+                    liftIO (writeIORef displayedBoard updatedBoard)
+                    drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
         return ()
 
     return ()

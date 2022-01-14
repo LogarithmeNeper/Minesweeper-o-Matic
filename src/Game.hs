@@ -10,7 +10,7 @@ data RealValue = Mine | Empty
     deriving (Eq, Show)
 
 -- Display value of the tile is what the player sees on the boad.
-data DisplayValue = Visible | Invisible | Flag | Unsure
+data DisplayValue = Visible | Invisible | Flag
     deriving (Eq, Show)
 
 -- Coordinates to locate a specific tile
@@ -73,6 +73,10 @@ isTileEmptyAndInvisible tile = not (isTileMine tile) && isTileInvisible tile
 -- Which was finally converted to the following.
 isGameBoardWon :: GameBoard -> Bool
 isGameBoardWon gameBoard = not (any isTileEmptyAndInvisible (concat gameBoard))
+
+-- Checks if the game has ended.
+hasGameBoardEnded :: GameBoard -> Bool 
+hasGameBoardEnded gameBoard = isGameBoardLost gameBoard || isGameBoardWon gameBoard
 
 -- Checks if the game is still in progress
 isGameInProgress :: GameBoard -> Bool
@@ -149,14 +153,17 @@ replaceOldTileWithNewTile gameBoard oldTile newTile = setTileInGameBoard gameBoa
 -----------------------------------------------------------------
 -- Board Generation                                             |
 -----------------------------------------------------------------
+
+-- Board generation is quite buggy.
+
 -- To generate the board at the beginning, we first generate an empty row of tiles.
 generateRowGameBoardEmpty :: Int -> Int -> [Tile]
 generateRowGameBoardEmpty _ 0 = []
 generateRowGameBoardEmpty i j = generateRowGameBoardEmpty i (j-1) ++ [currentTile]
     where currentTile = Tile {
-        displayValue = Invisible, -- in the beginning, the tile has not been played
+        displayValue = Visible, -- in the beginning, the tile has not been played -- debug --
         realValue = Empty, -- we will put mines afterwards
-        coordinates = (i,j-1) -- goes from 0 to size-1
+        coordinates = (i,j) -- goes from 0 to size-1
     }
 
 -- To generate the board, we generate each row recursively and concatenate.
@@ -176,7 +183,7 @@ generateRandomCoordinates maxHeigth maxWidth coordinatesLeft = do
 -- Now we can setup the board by putting mines in it with the setters previously defined.
 setMineAtCoordinates :: GameBoard -> Coordinates -> GameBoard
 setMineAtCoordinates gameBoard coordinates = setTileInGameBoard gameBoard newMine coordinates
-    where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Invisible}
+    where newMine = Tile {coordinates = coordinates, realValue = Mine, displayValue = Visible} -- debug --
 
 -- A simple recursivity pattern does the trick here, however Haskell indicates we can use foldl to do better. Here is the initial version :
 -- setMinesInGameBoard gameBoard [] = gameBoard
@@ -193,3 +200,15 @@ generateGameBoard maxHeight maxWidth howManyMines = do
     let gameBoard = generateGameBoardEmpty maxHeight maxWidth
     mineCoordinates <- generateRandomCoordinates  maxHeight maxWidth howManyMines
     return (setMinesInGameBoard gameBoard mineCoordinates)
+
+-----------------------------------------------------------------
+-- Plays                                                        |
+-----------------------------------------------------------------
+playTile :: GameBoard -> Tile -> GameBoard
+playTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Visible}
+
+flagTile :: GameBoard -> Tile -> GameBoard
+flagTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Flag}
+
+removeFlagTile :: GameBoard -> Tile -> GameBoard
+removeFlagTile gameBoard tile = replaceOldTileWithNewTile gameBoard tile tile{displayValue=Invisible}
