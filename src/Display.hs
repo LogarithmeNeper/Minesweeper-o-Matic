@@ -80,6 +80,9 @@ setup w = do
     state <- liftIO (newIORef PlayTile)
     gameStatus <- liftIO (newIORef InProgress)
 
+    generatedBoard <- liftIO (generateGameBoard sizeI sizeJ numberOfMines)
+    displayedBoard <- liftIO (newIORef generatedBoard)
+
     -- Buttons.
     playButton <- UI.button # set UI.text "play"
     flagButton <- UI.button # set UI.text "flag"
@@ -118,6 +121,8 @@ setup w = do
         -- Generate new board and display it.
         liftIO (writeIORef state PlayTile)
         liftIO (writeIORef gameStatus InProgress)
+        newBoard <- liftIO (generateGameBoard sizeI sizeJ numberOfMines)
+        liftIO (writeIORef displayedBoard newBoard)
         stateDisplayString <- string "play"
         element stateDisplay # set children [stateDisplayString]
         endOfGameString <- string ""
