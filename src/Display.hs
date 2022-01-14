@@ -30,6 +30,7 @@ sizeJ = 25
 numberOfMines :: Int
 numberOfMines = (floor . (*difficulty) . fromIntegral) sizeI * sizeJ
 
+-- Game state and game status.
 data State = PlayTile | FlagTile | RemoveFlagTile
 data GameStatus = InProgress | Won | Lost
 
@@ -45,27 +46,33 @@ flaggedString = "🚩"
 invisibleString :: String
 invisibleString = "⬛"
 
+-- Homothety for better visualisation.
 multiplicativeFactorI :: Int
 multiplicativeFactorI = 25
 
 multiplicativeFactorJ :: Int
 multiplicativeFactorJ = 25
 
+-- Translation for better visualisation.
 translateI :: Int
 translateI = 12
 
 translateJ :: Int
 translateJ = 12
 
+-- Real-life size 
 canvasSizeI :: Int
 canvasSizeI = multiplicativeFactorI * sizeI
+
 
 canvasSizeJ :: Int
 canvasSizeJ = multiplicativeFactorJ * sizeJ
 
+-- Grey background.
 canvasBackground :: String
 canvasBackground = "#c2c2c2"
 
+-- Drawing each cell by drawing at a certain position the current type with priority (invisible -> flagged -> mine -> visible)
 drawCells :: Coordinates -> GameBoard -> Int -> Int -> Element -> UI ()
 drawCells (_, -1) _ _ _ _ = return ()
 drawCells (i, j) gameBoard sizeI sizeJ canvas = do
@@ -79,17 +86,21 @@ drawCells (i, j) gameBoard sizeI sizeJ canvas = do
     canvas # UI.fillText cellType drawAt
     drawCells (i, j-1) gameBoard sizeI sizeJ canvas
 
+-- Drawing a row by drawing each cell.
 drawRows :: Int -> GameBoard -> Int -> Int -> Element -> UI ()
 drawRows (-1) _ _ _ _ = return ()
 drawRows i gameBoard sizeI sizeJ canvas = do
     drawCells (i, sizeJ) gameBoard sizeI sizeJ canvas
     drawRows (i-1) gameBoard sizeI sizeJ canvas
 
+-- Drawing game board by drawing each row.
 drawGameBoard :: GameBoard -> Int -> Int -> Element -> UI ()
 drawGameBoard gameBoard sizeI sizeJ canvas = do
     canvas # UI.clearCanvas
     drawRows sizeI gameBoard sizeI sizeJ canvas
 
+-- Function used to convert the mouse position to the actual coordinates, and then associate it with the grid.
+-- TODO
 convertCanvasCoordinatesToTile :: (Double, Double) -> GameBoard -> Tile
 convertCanvasCoordinatesToTile (x, y) gameBoard = getTileFromCoordinates gameBoard (i, j)
     where
@@ -223,7 +234,6 @@ setup w = do
                         else 
                             do 
                                 drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard 
-                
                 FlagTile -> do
                     let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
                         updatedBoard = flagTile currentGameBoard playedTile

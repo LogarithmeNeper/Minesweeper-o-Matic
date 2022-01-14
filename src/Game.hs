@@ -153,6 +153,9 @@ replaceOldTileWithNewTile gameBoard oldTile newTile = setTileInGameBoard gameBoa
 -----------------------------------------------------------------
 -- Board Generation                                             |
 -----------------------------------------------------------------
+
+-- Board generation is quite buggy.
+
 -- To generate the board at the beginning, we first generate an empty row of tiles.
 generateRowGameBoardEmpty :: Int -> Int -> [Tile]
 generateRowGameBoardEmpty _ 0 = []
