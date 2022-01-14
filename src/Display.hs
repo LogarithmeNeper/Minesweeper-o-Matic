@@ -16,7 +16,7 @@ import Data.IORef (newIORef, writeIORef, readIORef)
 -- Game Difficulty
 -- 0 <= difficulty <= 1
 difficulty :: Double
-difficulty = 0.13
+difficulty = 0.2
 
 -- Size of GameBoard (vertically)
 sizeI :: Int
@@ -64,7 +64,6 @@ translateJ = 12
 canvasSizeI :: Int
 canvasSizeI = multiplicativeFactorI * sizeI
 
-
 canvasSizeJ :: Int
 canvasSizeJ = multiplicativeFactorJ * sizeJ
 
@@ -76,7 +75,7 @@ canvasBackground = "#c2c2c2"
 drawCells :: Coordinates -> GameBoard -> Int -> Int -> Element -> UI ()
 drawCells (_, -1) _ _ _ _ = return ()
 drawCells (i, j) gameBoard sizeI sizeJ canvas = do
-    let drawAt = (fromIntegral (j*multiplicativeFactorJ+translateI), fromIntegral (i*multiplicativeFactorI+translateJ))
+    let drawAt = (fromIntegral (j*multiplicativeFactorJ+translateJ), fromIntegral (i*multiplicativeFactorI+translateI))
         currentTile = getTileFromCoordinates gameBoard (i,j)
         cellType
           | isTileInvisible currentTile = invisibleString
@@ -97,6 +96,7 @@ drawRows i gameBoard sizeI sizeJ canvas = do
 drawGameBoard :: GameBoard -> Int -> Int -> Element -> UI ()
 drawGameBoard gameBoard sizeI sizeJ canvas = do
     canvas # UI.clearCanvas
+    canvas # set' UI.textFont "72px"
     drawRows sizeI gameBoard sizeI sizeJ canvas
 
 -- Function used to convert the mouse position to the actual coordinates, and then associate it with the grid.
@@ -104,14 +104,14 @@ drawGameBoard gameBoard sizeI sizeJ canvas = do
 convertCanvasCoordinatesToTile :: (Double, Double) -> GameBoard -> Tile
 convertCanvasCoordinatesToTile (x, y) gameBoard = getTileFromCoordinates gameBoard (i, j)
     where
-        i = floor $ (y-fromIntegral translateJ)/fromIntegral multiplicativeFactorJ
-        j = floor $ (x-fromIntegral translateI)/fromIntegral multiplicativeFactorI
+        i = floor $ y/fromIntegral multiplicativeFactorJ
+        j = floor $ x/fromIntegral multiplicativeFactorI
 
 -----------------------------------------------------------------
 -- UI Design                                                    |
 -----------------------------------------------------------------
 start :: IO ()
-start = do startGUI defaultConfig setup
+start = startGUI defaultConfig setup
 
 setup :: Window -> UI ()
 setup w = do
@@ -186,8 +186,7 @@ setup w = do
         stateDisplayString <- string "remove"
         element stateDisplay # set children [stateDisplayString]
         return ()
-    on UI.click autoButton $ \_ -> do
-        -- meh time
+    on UI.click autoButton $ \_ -> 
         return ()
     on UI.click newGameButton $ \_ -> do
         -- Generate new board and display it.
@@ -199,12 +198,12 @@ setup w = do
         element stateDisplay # set children [stateDisplayString]
         endOfGameString <- string ""
         element endOfGameDisplay # set children [endOfGameString]
-        drawGameBoard newBoard (sizeI-2) (sizeJ-2) playableBoard
+        drawGameBoard newBoard (sizeI-1) (sizeJ-1) playableBoard
         return ()
 
     -- Actions with canvas and drawableBoard
     -- Idea taken from : https://stackoverflow.com/questions/59635767/threenpenny-gui-capturing-mouse-coordinates-on-click-and-using-them-to-constru
-    on UI.mousemove playableBoard $ \(x, y) -> do
+    on UI.mousemove playableBoard $ \(x, y) -> 
         liftIO (writeIORef mousePosition (x,y))
 
     on UI.mousedown playableBoard $ \_ -> do
@@ -219,21 +218,20 @@ setup w = do
                     let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
                         updatedBoard = playTile currentGameBoard playedTile
                     liftIO (writeIORef displayedBoard updatedBoard)
-                    if isGameBoardLost updatedBoard then 
+                    if isGameBoardLost updatedBoard then
                         do
                             drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
                             endOfGameString <- string "You lost."
                             element endOfGameDisplay # set children [endOfGameString]
                             return ()
-                    else 
+                    else
                         if isGameBoardWon updatedBoard then
                             do
                                 endOfGameString <- string "You won."
                                 element endOfGameDisplay # set children [endOfGameString]
                                 return ()
-                        else 
-                            do 
-                                drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard 
+                        else
+                                drawGameBoard updatedBoard (sizeI-1) (sizeJ-1) playableBoard
                 FlagTile -> do
                     let playedTile = convertCanvasCoordinatesToTile currentMousePosition currentGameBoard
                         updatedBoard = flagTile currentGameBoard playedTile
