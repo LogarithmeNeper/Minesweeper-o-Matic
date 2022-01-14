@@ -45,6 +45,21 @@ flaggedString = "🚩"
 emptyString :: String
 emptyString = "⬛"
 
+multiplicativeFactorI :: Int 
+multiplicativeFactorI = 30
+
+multiplicativeFactorJ :: Int
+multiplicativeFactorJ = 30
+
+canvasSizeI :: Int
+canvasSizeI = multiplicativeFactorI * sizeI
+
+canvasSizeJ :: Int
+canvasSizeJ = multiplicativeFactorJ * sizeJ
+
+canvasBackground :: String 
+canvasBackground = "#c2c2c2"
+
 -----------------------------------------------------------------
 -- UI Design                                                    |
 -----------------------------------------------------------------
@@ -83,6 +98,12 @@ setup w = do
     generatedBoard <- liftIO (generateGameBoard sizeI sizeJ numberOfMines)
     displayedBoard <- liftIO (newIORef generatedBoard)
 
+    -- Playable board
+    playableBoard <- UI.canvas
+        # set UI.height canvasSizeI
+        # set UI.width canvasSizeJ
+        # set UI.style [("background", canvasBackground)]
+    getBody w #+ [return playableBoard]
     -- Buttons.
     playButton <- UI.button # set UI.text "play"
     flagButton <- UI.button # set UI.text "flag"
@@ -93,7 +114,7 @@ setup w = do
     getBody w #+ [return playButton, return flagButton, return removeFlagButton, return autoButton, return newGameButton]
     
     -- End of game user display
-    endOfGameString <- string "Play"
+    endOfGameString <- string ""
     endOfGameDisplay <- UI.div
     element endOfGameDisplay # set children [endOfGameString]
     getBody w #+ [return endOfGameDisplay]
